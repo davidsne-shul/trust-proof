@@ -1,0 +1,20 @@
+{
+  "name": "trust-proof",
+  "version": "1.0.0",
+  "description": "Show what you actually did, not what you claim — process patterns over time, built from a public work record.",
+  "license": "MIT",
+  "type": "module",
+  "private": false,
+  "scripts": {
+    "test": "node test/signals.test.mjs",
+    "dev": "vercel dev"
+  },
+  "keywords": [
+    "proof-of-work",
+    "hiring",
+    "portfolio",
+    "github",
+    "developer-profile",
+    "resume"
+  ]
+}

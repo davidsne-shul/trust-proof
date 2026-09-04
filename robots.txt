@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://trust-proof.vercel.app/sitemap.xml
