@@ -1,18 +1,15 @@
 // TRUST Proof — renders one person's page from the signal engine.
 // Counts, never percentages. The journey draws before any number is named.
 
-import { STR, MONTHS, pickLang, rememberLang, setFormatter } from './strings.js';
-
-let L = pickLang();
-let T = STR[L];
+import { T, MONTHS, setFormatter } from './strings.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const n = (x) => Number(x || 0).toLocaleString(L === 'he' ? 'he-IL' : 'en-US');
+const n = (x) => Number(x || 0).toLocaleString('en-US');
 setFormatter(n);
-const pretty = (d) => { const t = new Date(d + 'T00:00:00Z'); return `${MONTHS[L][t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
+const pretty = (d) => { const t = new Date(d + 'T00:00:00Z'); return `${MONTHS[t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
 // A comeback is a specific day. Rounding it to a month loses the thing that makes it real.
-const prettyDay = (d) => { const t = new Date(d + 'T00:00:00Z'); return `${t.getUTCDate()} ${MONTHS[L][t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
+const prettyDay = (d) => { const t = new Date(d + 'T00:00:00Z'); return `${t.getUTCDate()} ${MONTHS[t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
 
 /** Counting, not tracking. Event names and coarse shape — never a handle. */
 const track = (name, data) => { try { window.va?.('event', { name, ...(data ? { data } : {}) }); } catch {} };
@@ -172,7 +169,7 @@ function render(d) {
     <p>${esc(T.footer(new Date(d.generated_at).toISOString().slice(0, 10)))}</p>
     ${d.depth === 'repos_only' ? `<p style="margin-top:10px">${esc(T.deeper)}</p>` : ''}
     <div class="cta">
-      <a class="btn" href="${L === 'he' ? '/he' : '/'}">${esc(T.buildOwn)}</a>
+      <a class="btn" href="/">${esc(T.buildOwn)}</a>
       <button class="btn ghost" id="copy" type="button">${esc(T.copyLink)}</button>
       <button class="btn ghost" id="badge" type="button">${esc(T.copyBadge)}</button>
     </div>
@@ -213,28 +210,11 @@ function addedOnly(profile, handle) {
   };
 }
 
-/** The page states its own language, so no browser offers to translate it. */
-function applyLang() {
-  document.documentElement.lang = L;
-  document.documentElement.dir = T.dir;
-  const btn = document.getElementById('lang');
-  if (!btn) return;
-  btn.textContent = T.other;
-  btn.hidden = false;
-  btn.onclick = () => {
-    L = T.otherLang;
-    T = STR[L];
-    rememberLang(L);
-    location.reload();
-  };
-}
-
 async function main() {
   const root = document.getElementById('root');
   const handle = handleFromLocation();
-  if (!handle) { location.replace(L === 'he' ? '/he' : '/'); return; }
+  if (!handle) { location.replace('/'); return; }
 
-  applyLang();
   document.title = `${handle} — TRUST Proof`;
   root.innerHTML = `<div class="state"><div class="skl"></div><p style="margin-top:20px">${esc(T.loading)}</p></div>`;
 
@@ -260,7 +240,7 @@ async function main() {
       offline: esc(T.errOffline),
     };
     root.innerHTML = `<div class="state"><p>${why[failure] || esc(T.errOther)}</p>
-      <a class="btn ghost" href="${L === 'he' ? '/he' : '/'}" style="margin-top:20px">${esc(T.tryAnother)}</a></div>`;
+      <a class="btn ghost" href="/" style="margin-top:20px">${esc(T.tryAnother)}</a></div>`;
     return;
   }
 
@@ -273,7 +253,7 @@ async function main() {
   root.innerHTML = render(data);
   // Pages built, links copied, and whether someone came back. Event names
   // only — no handle, no identity, nothing about who the person is.
-  track('page_built', { depth: data.depth, added: data.added?.length ? 'yes' : 'no', lang: L });
+  track('page_built', { depth: data.depth, added: data.added?.length ? 'yes' : 'no' });
   track(...returnVisit(data.handle));
 
   const url = `${location.origin}/@${data.handle}`;

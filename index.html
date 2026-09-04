@@ -119,9 +119,6 @@
 </div>
 
 <script>
-// Whichever landing you read is the language the record opens in.
-try { localStorage.setItem('tp:lang', 'en'); } catch {}
-
 document.getElementById('go').addEventListener('submit', (e) => {
   e.preventDefault();
   const v = document.getElementById('u').value.trim().replace(/^@/, '').replace(/^.*github\.com\//, '').split('/')[0];
