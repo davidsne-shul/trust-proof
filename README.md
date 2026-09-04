@@ -7,7 +7,7 @@ yesterdays. TRUST Proof turns a public work record into one page you can send â€
 built from process patterns over time rather than a score.
 
 ```
-https://trust-proof.vercel.app/@your-handle
+https://trust-proof-nu.vercel.app/@your-handle
 ```
 
 No sign-up, no install, nothing to connect. Public data only.
@@ -60,7 +60,7 @@ uploads most.
 One markdown line puts the record in a GitHub profile:
 
 ```markdown
-[![TRUST Proof](https://trust-proof.vercel.app/badge/your-handle)](https://trust-proof.vercel.app/@your-handle)
+[![TRUST Proof](https://trust-proof-nu.vercel.app/badge/your-handle)](https://trust-proof-nu.vercel.app/@your-handle)
 ```
 
 ---

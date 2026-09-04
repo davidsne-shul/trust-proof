@@ -6,12 +6,12 @@
 <title>TRUST Proof — show what you actually did, not what you claim</title>
 <meta name="description" content="AI writes a perfect résumé in two minutes. It cannot write ninety days of yesterdays. TRUST Proof turns your public record into one page you can send: days of record, comebacks after a pause, and when each language entered your work.">
 <meta name="theme-color" content="#0A0A0A">
-<link rel="canonical" href="https://trust-proof.vercel.app/">
+<link rel="canonical" href="https://trust-proof-nu.vercel.app/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TRUST Proof">
 <meta property="og:title" content="Show what you actually did, not what you claim">
 <meta property="og:description" content="AI writes a perfect résumé in two minutes. It cannot write ninety days of yesterdays.">
-<meta property="og:url" content="https://trust-proof.vercel.app/">
+<meta property="og:url" content="https://trust-proof-nu.vercel.app/">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -102,7 +102,7 @@
     <p class="lede" style="margin-top:18px">
       One markdown line puts the record in your GitHub profile, where people
       already look you up. It links back to the full page.</p>
-    <pre class="snippet">[![TRUST Proof](https://trust-proof.vercel.app/badge/your-handle)](https://trust-proof.vercel.app/@your-handle)</pre>
+    <pre class="snippet">[![TRUST Proof](https://trust-proof-nu.vercel.app/badge/your-handle)](https://trust-proof-nu.vercel.app/@your-handle)</pre>
   </section>
 
   <section>
@@ -119,6 +119,9 @@
 </div>
 
 <script>
+// Whichever landing you read is the language the record opens in.
+try { localStorage.setItem('tp:lang', 'en'); } catch {}
+
 document.getElementById('go').addEventListener('submit', (e) => {
   e.preventDefault();
   const v = document.getElementById('u').value.trim().replace(/^@/, '').replace(/^.*github\.com\//, '').split('/')[0];

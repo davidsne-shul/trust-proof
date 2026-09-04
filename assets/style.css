@@ -173,3 +173,8 @@ section{padding:clamp(48px,7vw,84px) 0; border-top:1px solid var(--line)}
   font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:.8125rem;
   color:var(--dim); white-space:pre; direction:ltr;
 }
+
+/* Chronology runs left to right even on an RTL page: that is the convention for
+   a time axis, and mirroring it would put the newest month where a reader of
+   the Hebrew page expects the oldest. */
+.bars, .axis{direction:ltr}

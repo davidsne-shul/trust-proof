@@ -1,14 +1,18 @@
 // TRUST Proof — renders one person's page from the signal engine.
 // Counts, never percentages. The journey draws before any number is named.
 
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+import { STR, MONTHS, pickLang, rememberLang, setFormatter } from './strings.js';
+
+let L = pickLang();
+let T = STR[L];
+
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const pretty = (d) => { const t = new Date(d + 'T00:00:00Z'); return `${MONTHS[t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
+const n = (x) => Number(x || 0).toLocaleString(L === 'he' ? 'he-IL' : 'en-US');
+setFormatter(n);
+const pretty = (d) => { const t = new Date(d + 'T00:00:00Z'); return `${MONTHS[L][t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
 // A comeback is a specific day. Rounding it to a month loses the thing that makes it real.
-const prettyDay = (d) => { const t = new Date(d + 'T00:00:00Z'); return `${t.getUTCDate()} ${MONTHS[t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
-const n = (x) => Number(x || 0).toLocaleString('en-US');
-const plural = (c, one, many) => `${n(c)} ${c === 1 ? one : many}`;
+const prettyDay = (d) => { const t = new Date(d + 'T00:00:00Z'); return `${t.getUTCDate()} ${MONTHS[L][t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
 
 /** Counting, not tracking. Event names and coarse shape — never a handle. */
 const track = (name, data) => { try { window.va?.('event', { name, ...(data ? { data } : {}) }); } catch {} };
@@ -40,16 +44,17 @@ function handleFromLocation() {
 function journey(months) {
   if (!months || months.length < 2) return '';
   const peak = Math.max(...months.map((m) => m.count), 1);
+  const first = pretty(months[0].month + '-01');
+  const last = pretty(months.at(-1).month + '-01');
   const bars = months.map((m) => {
     const h = m.count ? Math.max(4, Math.round((m.count / peak) * 100)) : 3;
-    const label = `${pretty(m.month + '-01')}: ${plural(m.count, 'contribution', 'contributions')}`;
-    return `<i class="${m.count ? '' : 'void'}" style="height:${h}%" title="${esc(label)}"></i>`;
+    return `<i class="${m.count ? '' : 'void'}" style="height:${h}%" title="${esc(T.contributions(pretty(m.month + '-01'), m.count))}"></i>`;
   }).join('');
   return `
     <div class="journey">
-      <div class="eyebrow">The record, month by month</div>
-      <div class="bars" role="img" aria-label="Monthly activity from ${esc(pretty(months[0].month + '-01'))} to ${esc(pretty(months.at(-1).month + '-01'))}">${bars}</div>
-      <div class="axis"><span>${esc(pretty(months[0].month + '-01'))}</span><span>${esc(pretty(months.at(-1).month + '-01'))}</span></div>
+      <div class="eyebrow">${esc(T.journey)}</div>
+      <div class="bars" role="img" aria-label="${esc(T.range(first, last))}">${bars}</div>
+      <div class="axis"><span>${esc(first)}</span><span>${esc(last)}</span></div>
     </div>`;
 }
 
@@ -64,12 +69,11 @@ function journey(months) {
  * before an interview show as one day's worth, and there is no way to
  * make them look like anything else.
  */
-function addedLayer(added, storageBase, who) {
+function addedLayer(added, storageBase) {
   if (!added || !added.length) return '';
 
   const dayOf = (x) => x.added_at.slice(0, 10);
   const spread = new Set(added.map(dayOf)).size;
-  const first = added.at(-1), last = added[0];
 
   const items = added.slice(0, 24).map((a) => {
     const img = a.image_path && storageBase
@@ -77,24 +81,22 @@ function addedLayer(added, storageBase, who) {
     const note = a.link_url
       ? `<a href="${esc(a.link_url)}" rel="noopener nofollow ugc" target="_blank">${esc(a.note)}</a>`
       : esc(a.note);
-    return `<figure class="ev">${img}<figcaption>${note}
+    return `<figure class="ev">${img}<figcaption dir="auto">${note}
       <span class="when">${esc(prettyDay(dayOf(a)))}</span></figcaption></figure>`;
   }).join('');
 
   return `
     <section style="border:0;padding:46px 0 0">
-      <div class="eyebrow">What ${esc(who)} added</div>
+      <div class="eyebrow">${esc(T.addedTitle)}</div>
       <p class="faint" style="font-size:.875rem;max-width:62ch;margin-bottom:20px">
-        ${plural(added.length, 'item', 'items')} across ${plural(spread, 'day', 'days')},
-        from ${esc(prettyDay(dayOf(first)))} to ${esc(prettyDay(dayOf(last)))}.
-        Each one carries the day it arrived, and that date cannot be moved.</p>
+        ${esc(T.addedBody(added.length, spread, prettyDay(dayOf(added.at(-1))), prettyDay(dayOf(added[0]))))}</p>
       <div class="evs">${items}</div>
     </section>`;
 }
 
 function signal(num, unit, title, how) {
   return `<div class="sig">
-    <div class="n"><b>${num}</b> ${esc(unit)}</div>
+    <div class="n"><b>${esc(num)}</b> ${esc(unit)}</div>
     <div class="t">${title}</div>
     <div class="h">${esc(how)}</div>
   </div>`;
@@ -105,57 +107,51 @@ function render(d) {
   const sigs = [];
 
   if (d.comebacks != null) {
-    sigs.push(signal(
-      n(d.comebacks), d.comebacks === 1 ? 'comeback' : 'comebacks',
+    sigs.push(signal(n(d.comebacks), T.comebacks(d.comebacks),
       d.last_comeback
-        ? `Away ${plural(d.last_comeback.away_days, 'day', 'days')} — then back on ${esc(prettyDay(d.last_comeback.returned_on))}.`
-        : 'Every stretch away ended with a return.',
-      d.how.comebacks));
+        ? esc(T.comebackLast(d.last_comeback.away_days, prettyDay(d.last_comeback.returned_on)))
+        : esc(T.comebackNone),
+      T.howComebacks));
 
-    sigs.push(signal(
-      n(d.active_weeks), d.active_weeks === 1 ? 'active week' : 'active weeks',
-      `Longest unbroken run: ${plural(d.longest_run_weeks, 'week', 'weeks')}.`,
-      d.how.active_weeks));
+    sigs.push(signal(n(d.active_weeks), T.activeWeeks(d.active_weeks),
+      esc(T.longestRun(d.longest_run_weeks)), T.howWeeks));
   }
 
   if (d.languages.length) {
-    sigs.push(signal(
-      n(d.languages.length), d.languages.length === 1 ? 'language' : 'languages',
-      `First one in ${esc(pretty(d.languages[0].first))}, most recent in ${esc(pretty(d.languages.at(-1).first))}.`,
-      d.how.languages));
+    sigs.push(signal(n(d.languages.length), T.languages(d.languages.length),
+      esc(T.languageSpan(pretty(d.languages[0].first), pretty(d.languages.at(-1).first))),
+      T.howLanguages));
   }
 
   if (d.long_projects.length) {
     const top = d.long_projects[0];
-    sigs.push(signal(
-      n(d.long_projects.length), d.long_projects.length === 1 ? 'long project' : 'long projects',
-      `Longest: <span class="mono">${esc(top.name)}</span> — still going ${plural(top.span_days, 'day', 'days')} in.`,
-      d.how.long_projects));
+    sigs.push(signal(n(d.long_projects.length), T.longProjects(d.long_projects.length),
+      T.longest(esc(top.name), top.span_days), T.howProjects));
   }
 
   const langRows = d.languages.slice(0, 10).map((l) => `
     <div><b>${esc(l.name)}</b>
-      <span class="dim">${plural(l.repos, 'project', 'projects')}</span>
-      <span class="when">entered ${esc(pretty(l.first))}</span></div>`).join('');
+      <span class="dim">${esc(T.projects(l.repos))}</span>
+      <span class="when">${esc(T.entered(pretty(l.first)))}</span></div>`).join('');
 
   const projRows = d.long_projects.map((p) => `
     <div><b class="mono">${esc(p.name)}</b>
-      <span class="dim">${p.language ? esc(p.language) + ' · ' : ''}started ${esc(pretty(p.started))}</span>
-      <span class="when">${plural(p.span_days, 'day', 'days')}</span></div>`).join('');
+      <span class="dim">${p.language ? esc(p.language) + ' · ' : ''}${esc(T.started(pretty(p.started)))}</span>
+      <span class="when">${esc(T.days(p.span_days))}</span></div>`).join('');
 
   return `
   <div class="who">
     <img src="${esc(d.avatar)}" alt="" width="76" height="76" loading="lazy">
     <div>
-      <h1>${esc(d.name)}</h1>
+      <h1 dir="auto">${esc(d.name)}</h1>
       <div class="at mono">@${esc(d.handle)}</div>
     </div>
   </div>
-  ${d.bio ? `<p class="dim" style="max-width:60ch">${esc(d.bio)}</p>` : ''}
+  ${d.bio ? `<p class="dim" dir="auto" style="max-width:60ch">${esc(d.bio)}</p>` : ''}
 
   <div class="span-line">
-    <div class="big"><span>${n(d.days_of_record)}</span> days of record</div>
-    <div class="faint">since ${esc(pretty(d.since))}${years >= 1 ? ` · ${plural(years, 'year', 'years')}` : ''}</div>
+    <div class="big"><span>${esc(n(d.days_of_record))}</span> ${esc(T.daysOfRecord)}</div>
+    <div class="faint">${esc(T.since(pretty(d.since)))}${years >= 1 ? ` · ${esc(T.years(years))}` : ''}</div>
   </div>
 
   ${journey(d.months)}
@@ -163,23 +159,22 @@ function render(d) {
   <div class="signals">${sigs.join('')}</div>
 
   ${d.languages.length ? `<section style="border:0;padding:44px 0 0">
-    <div class="eyebrow">When each language entered the work</div>
+    <div class="eyebrow">${esc(T.langTimeline)}</div>
     <div class="tl">${langRows}</div></section>` : ''}
 
   ${d.long_projects.length ? `<section style="border:0;padding:40px 0 0">
-    <div class="eyebrow">Projects that were still being pushed to, months in</div>
+    <div class="eyebrow">${esc(T.projectTimeline)}</div>
     <div class="tl">${projRows}</div></section>` : ''}
 
-  ${addedLayer(d.added, d.storage_base, d.name)}
+  ${addedLayer(d.added, d.storage_base)}
 
   <div class="foot">
-    <p>Built from public GitHub data on ${esc(new Date(d.generated_at).toISOString().slice(0, 10))}.
-    Nothing private was read. No code, no commit messages, no AI — dates, counts and names only.</p>
-    ${d.depth === 'repos_only' ? '<p style="margin-top:10px">Day-level history opens up once the server key is set.</p>' : ''}
+    <p>${esc(T.footer(new Date(d.generated_at).toISOString().slice(0, 10)))}</p>
+    ${d.depth === 'repos_only' ? `<p style="margin-top:10px">${esc(T.deeper)}</p>` : ''}
     <div class="cta">
-      <a class="btn" href="/">Build your own page</a>
-      <button class="btn ghost" id="copy" type="button">Copy link</button>
-      <button class="btn ghost" id="badge" type="button">Copy README badge</button>
+      <a class="btn" href="${L === 'he' ? '/he' : '/'}">${esc(T.buildOwn)}</a>
+      <button class="btn ghost" id="copy" type="button">${esc(T.copyLink)}</button>
+      <button class="btn ghost" id="badge" type="button">${esc(T.copyBadge)}</button>
     </div>
     <pre class="snippet" id="snip" hidden></pre>
   </div>`;
@@ -215,17 +210,33 @@ function addedOnly(profile, handle) {
     days_of_record: Math.round((Date.now() - new Date(profile.since)) / 86400000),
     languages: [], long_projects: [], repos_built: 0,
     generated_at: new Date().toISOString(), depth: 'added_only',
-    how: { days_of_record: 'From the day this page was opened until today.' },
+  };
+}
+
+/** The page states its own language, so no browser offers to translate it. */
+function applyLang() {
+  document.documentElement.lang = L;
+  document.documentElement.dir = T.dir;
+  const btn = document.getElementById('lang');
+  if (!btn) return;
+  btn.textContent = T.other;
+  btn.hidden = false;
+  btn.onclick = () => {
+    L = T.otherLang;
+    T = STR[L];
+    rememberLang(L);
+    location.reload();
   };
 }
 
 async function main() {
   const root = document.getElementById('root');
   const handle = handleFromLocation();
-  if (!handle) { location.replace('/'); return; }
+  if (!handle) { location.replace(L === 'he' ? '/he' : '/'); return; }
 
+  applyLang();
   document.title = `${handle} — TRUST Proof`;
-  root.innerHTML = `<div class="state"><div class="skl"></div><p style="margin-top:20px">Reading the record…</p></div>`;
+  root.innerHTML = `<div class="state"><div class="skl"></div><p style="margin-top:20px">${esc(T.loading)}</p></div>`;
 
   const cfg = await config();
   const profile = await addedFor(handle, cfg);
@@ -243,13 +254,13 @@ async function main() {
 
   if (!data) {
     const why = {
-      no_such_handle: `No public GitHub account is open under <span class="mono">@${esc(handle)}</span>.`,
-      rate_limited: 'GitHub is holding requests for a minute. Try again shortly.',
-      bad_handle: 'That handle has characters GitHub does not use.',
-      offline: 'The connection dropped. Try again in a moment.',
+      no_such_handle: T.errNoHandle(esc(handle)),
+      rate_limited: esc(T.errRate),
+      bad_handle: esc(T.errBad),
+      offline: esc(T.errOffline),
     };
-    root.innerHTML = `<div class="state"><p>${why[failure] || 'Something upstream is quiet right now.'}</p>
-      <a class="btn ghost" href="/" style="margin-top:20px">Try another handle</a></div>`;
+    root.innerHTML = `<div class="state"><p>${why[failure] || esc(T.errOther)}</p>
+      <a class="btn ghost" href="${L === 'he' ? '/he' : '/'}" style="margin-top:20px">${esc(T.tryAnother)}</a></div>`;
     return;
   }
 
@@ -262,14 +273,14 @@ async function main() {
   root.innerHTML = render(data);
   // Pages built, links copied, and whether someone came back. Event names
   // only — no handle, no identity, nothing about who the person is.
-  track('page_built', { depth: data.depth, added: data.added?.length ? 'yes' : 'no' });
+  track('page_built', { depth: data.depth, added: data.added?.length ? 'yes' : 'no', lang: L });
   track(...returnVisit(data.handle));
 
   const url = `${location.origin}/@${data.handle}`;
   history.replaceState(null, '', `/@${data.handle}`);
   document.getElementById('copy')?.addEventListener('click', async (e) => {
     track('link_copied');
-    try { await navigator.clipboard.writeText(url); e.target.textContent = 'Copied'; }
+    try { await navigator.clipboard.writeText(url); e.target.textContent = T.copied; }
     catch { e.target.textContent = url; }
   });
 
@@ -281,8 +292,8 @@ async function main() {
     const pre = document.getElementById('snip');
     pre.textContent = snippet;
     pre.hidden = false;
-    try { await navigator.clipboard.writeText(snippet); e.target.textContent = 'Copied'; }
-    catch { e.target.textContent = 'Copy it below'; }
+    try { await navigator.clipboard.writeText(snippet); e.target.textContent = T.copied; }
+    catch { e.target.textContent = T.copyBelow; }
   });
 }
 

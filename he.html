@@ -6,7 +6,7 @@
 <title>TRUST Proof — תראו מה באמת עשיתם, לא מה שכתבתם</title>
 <meta name="description" content="AI כותב קורות חיים מושלמים בשתי דקות. הוא לא יכול לכתוב תשעים יום של אתמול. TRUST Proof הופך את הרישום הציבורי שלכם לעמוד אחד שאפשר לשלוח.">
 <meta name="theme-color" content="#0A0A0A">
-<link rel="alternate" hreflang="en" href="https://trust-proof.vercel.app/">
+<link rel="alternate" hreflang="en" href="https://trust-proof-nu.vercel.app/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="תראו מה באמת עשיתם, לא מה שכתבתם">
 <meta property="og:description" content="AI כותב קורות חיים מושלמים בשתי דקות. הוא לא יכול לכתוב תשעים יום של אתמול.">
@@ -92,7 +92,7 @@
     <p class="lede" style="margin-top:18px">
       שורת מרקדאון אחת שמה את הרישום בפרופיל הגיטהאב שלכם, שם ממילא בודקים
       אתכם. היא מקשרת חזרה לעמוד המלא.</p>
-    <pre class="snippet">[![TRUST Proof](https://trust-proof.vercel.app/badge/your-handle)](https://trust-proof.vercel.app/@your-handle)</pre>
+    <pre class="snippet">[![TRUST Proof](https://trust-proof-nu.vercel.app/badge/your-handle)](https://trust-proof-nu.vercel.app/@your-handle)</pre>
   </section>
 
   <section>
@@ -109,6 +109,9 @@
 </div>
 
 <script>
+// Whichever landing you read is the language the record opens in.
+try { localStorage.setItem('tp:lang', 'he'); } catch {}
+
 document.getElementById('go').addEventListener('submit', (e) => {
   e.preventDefault();
   const v = document.getElementById('u').value.trim().replace(/^@/, '').replace(/^.*github\.com\//, '').split('/')[0];
