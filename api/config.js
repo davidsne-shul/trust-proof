@@ -12,5 +12,8 @@ export default function handler(req, res) {
   res.status(200).json({
     supabaseUrl: process.env.PROOF_SUPABASE_URL || '',
     supabaseAnonKey: process.env.PROOF_SUPABASE_ANON_KEY || '',
+    // Whether /api/signup can actually store anything. A boolean, never the
+    // key — a form that silently drops what people type is worse than none.
+    signupOpen: Boolean(process.env.PROOF_SUPABASE_URL && process.env.PROOF_SUPABASE_SERVICE_KEY),
   });
 }

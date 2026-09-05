@@ -58,6 +58,14 @@ export const T = {
   footer: (d) => `Built from public GitHub data on ${d}. Nothing private was read. ` +
     'No code, no commit messages, no AI — dates, counts and names only.',
   deeper: 'Day-level history opens up once the server key is set.',
+  // The promise has to be one we can keep. This one is true: the second layer
+  // is written and waiting on a database, not on a decision.
+  signupLead: 'This page reads code. A record can hold more than that — a photo, a link, one line, dated the moment it arrives.',
+  signupPlace: 'you@example.com',
+  signupGo: 'Tell me when',
+  signupDone: 'Noted. You will hear once.',
+  signupBad: 'That address does not look complete.',
+  signupFail: 'That did not go through. Try again in a moment.',
   buildOwn: 'Build your own page',
   copyLink: 'Copy link',
   copyBadge: 'Copy README badge',

@@ -175,7 +175,54 @@ function render(d) {
       <button class="btn ghost" id="badge" type="button">${esc(T.copyBadge)}</button>
     </div>
     <pre class="snippet" id="snip" hidden></pre>
+
+    <form class="signup" id="signup" novalidate hidden>
+      <p class="signup-lead">${esc(T.signupLead)}</p>
+      <div class="field" style="margin:0">
+        <label for="em">Email</label>
+        <div class="wrap"><input id="em" type="email" inputmode="email"
+          autocomplete="email" placeholder="${esc(T.signupPlace)}"></div>
+        <button class="btn" type="submit">${esc(T.signupGo)}</button>
+      </div>
+      <p class="note" id="emsg"></p>
+    </form>
   </div>`;
+}
+
+/**
+ * The waiting list, shown only where it can actually keep what it is given.
+ * It sits at the end, after someone has seen their own record — asking before
+ * that is asking for a favour before anything has been offered.
+ */
+function wireSignup(cfg) {
+  const form = document.getElementById('signup');
+  if (!form || !cfg.signupOpen) return;
+  form.hidden = false;
+
+  const msg = document.getElementById('emsg');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('em');
+    const email = input.value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.textContent = T.signupBad; return; }
+
+    const btn = form.querySelector('button');
+    btn.disabled = true;
+    msg.textContent = '…';
+    try {
+      const r = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'proof-page' }),
+      });
+      if (!r.ok) throw new Error();
+      track('email_left');
+      form.innerHTML = `<p class="signup-lead">${esc(T.signupDone)}</p>`;
+    } catch {
+      msg.textContent = T.signupFail;
+      btn.disabled = false;
+    }
+  });
 }
 
 /** Config lives on the server so no key is written into this repository. */
@@ -275,6 +322,8 @@ async function main() {
     try { const { playRecord } = await import('./film.js'); await playRecord(data); }
     finally { e.target.disabled = false; }
   });
+
+  wireSignup(cfg);
 
   const snippet = `[![TRUST Proof](${location.origin}/badge/${data.handle})](${url})`;
   document.getElementById('badge')?.addEventListener('click', async (e) => {

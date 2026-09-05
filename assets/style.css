@@ -242,3 +242,10 @@ section{padding:clamp(48px,7vw,84px) 0; border-top:1px solid var(--line)}
 /* the play control sits with the span it plays */
 .span-line .play{margin-inline-start:auto; min-height:44px; padding:0 20px; font-size:.9375rem}
 @media(max-width:620px){ .span-line .play{margin-inline-start:0; margin-top:14px} }
+
+/* ---------- the waiting list ---------- */
+.signup{
+  margin-top:34px; padding-top:26px; border-top:1px solid var(--line);
+  max-width:560px;
+}
+.signup-lead{color:var(--dim); font-size:.9375rem; margin-bottom:16px; max-width:56ch}
