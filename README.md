@@ -12,6 +12,8 @@ https://trust-proof-nu.vercel.app/@your-handle
 
 No sign-up, no install, nothing to connect. Public data only.
 
+![The proof page: days of record, the month-by-month journey, and four signals](docs/preview.png)
+
 ---
 
 ## What it shows
