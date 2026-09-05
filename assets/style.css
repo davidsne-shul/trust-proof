@@ -178,3 +178,67 @@ section{padding:clamp(48px,7vw,84px) 0; border-top:1px solid var(--line)}
    a time axis, and mirroring it would put the newest month where a reader of
    the Hebrew page expects the oldest. */
 .bars, .axis{direction:ltr}
+
+/* ---------- the record, played ---------- */
+.film{
+  position:fixed; inset:0; z-index:60; background:var(--ink);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:24px; animation:fade .3s ease;
+}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.film-x{
+  position:absolute; top:18px; inset-inline-end:18px; min-height:44px; padding:0 18px;
+  background:none; border:1px solid var(--line); border-radius:var(--r-sm);
+  color:var(--dim); font:inherit; font-size:.875rem; cursor:pointer;
+}
+.film-x:hover{color:var(--text); border-color:var(--dim)}
+.film-stage{width:min(880px,94vw); text-align:center}
+.fs{display:flex; flex-direction:column; align-items:center; animation:fade .5s ease}
+.fs.wide{width:100%}
+
+.film-kicker{font-size:.8125rem; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin-bottom:22px}
+.film-name{font-size:clamp(2rem,6vw,3.6rem); letter-spacing:-.03em}
+.film-sub{margin-top:14px; color:var(--dim); font-size:clamp(.9375rem,2vw,1.125rem)}
+.film-note{margin-top:12px; color:var(--faint); font-size:.8125rem; min-height:1.2em}
+.film-big{
+  font-size:clamp(3.4rem,13vw,8rem); font-weight:600; letter-spacing:-.05em;
+  line-height:1; color:var(--accent); font-variant-numeric:tabular-nums;
+}
+.film-count{color:var(--accent); font-weight:600; font-variant-numeric:tabular-nums}
+
+.film-bars{
+  /* .fs centres its children, so without an explicit width the flex row
+     shrinks to its content and five years of record draw 262px wide. */
+  width:100%; height:min(34vh,240px); margin:8px 0 22px;
+}
+.film-bars i{transition:height .28s cubic-bezier(.2,.8,.3,1)}
+.film-bars i.hit{background:var(--warm); box-shadow:0 0 18px rgba(232,192,125,.5)}
+
+.film-langs{display:flex; flex-direction:column; gap:2px; width:min(460px,90vw); margin:0 auto}
+.film-lang{
+  display:flex; justify-content:space-between; align-items:baseline; gap:16px;
+  padding:13px 0; border-top:1px solid var(--line);
+  opacity:0; transform:translateY(8px); transition:opacity .4s ease, transform .4s ease;
+}
+.film-lang.in{opacity:1; transform:none}
+.film-lang b{font-weight:500; font-size:1.0625rem}
+.film-lang span{color:var(--faint); font-size:.875rem; font-variant-numeric:tabular-nums}
+
+.film-grid{display:grid; gap:26px 40px; grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:720px){ .film-grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+.film-grid div{display:flex; flex-direction:column; gap:6px}
+.film-grid b{font-size:clamp(1.6rem,4vw,2.4rem); font-weight:600; color:var(--accent); letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.film-grid span{font-size:.8125rem; letter-spacing:.06em; text-transform:uppercase; color:var(--faint)}
+
+.film-bar{position:absolute; left:0; right:0; bottom:0; height:2px; background:#1B1B1B}
+.film-bar span{display:block; height:100%; width:0; background:var(--accent); transition:width .5s ease}
+
+@media(prefers-reduced-motion:reduce){
+  .film,.fs{animation:none}
+  .film-bars i,.film-lang{transition:none}
+  .film-lang{opacity:1; transform:none}
+}
+
+/* the play control sits with the span it plays */
+.span-line .play{margin-inline-start:auto; min-height:44px; padding:0 20px; font-size:.9375rem}
+@media(max-width:620px){ .span-line .play{margin-inline-start:0; margin-top:14px} }

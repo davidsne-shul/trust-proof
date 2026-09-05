@@ -194,6 +194,9 @@ export async function computeProof(handle, token) {
       months: monthly(days),
       ...weekRhythm(days),
       comebacks: back.length,
+      // The dates themselves, not just the count — a return is a specific day,
+      // and anything that tells the record as a story needs to land on it.
+      comeback_dates: back.slice(-12).map((b) => ({ on: b.returned_on, away: b.away_days })),
       longest_away_days: back.reduce((a, b) => Math.max(a, b.away_days), 0),
       last_comeback: back.length ? back[back.length - 1] : null,
       active_days: days.filter((d) => d.count > 0).length,

@@ -149,6 +149,7 @@ function render(d) {
   <div class="span-line">
     <div class="big"><span>${esc(n(d.days_of_record))}</span> ${esc(T.daysOfRecord)}</div>
     <div class="faint">${esc(T.since(pretty(d.since)))}${years >= 1 ? ` · ${esc(T.years(years))}` : ''}</div>
+    ${d.months?.length > 1 ? `<button class="btn ghost play" id="play" type="button">▶ ${esc(T.play)}</button>` : ''}
   </div>
 
   ${journey(d.months)}
@@ -266,6 +267,15 @@ async function main() {
 
   // The badge is the loop that lives inside GitHub: it sits in a profile README,
   // in front of the audience this is for, put there by the person it belongs to.
+  // Loaded only when someone actually presses play — the page stays light for
+  // everyone who just reads it.
+  document.getElementById('play')?.addEventListener('click', async (e) => {
+    track('film_played');
+    e.target.disabled = true;
+    try { const { playRecord } = await import('./film.js'); await playRecord(data); }
+    finally { e.target.disabled = false; }
+  });
+
   const snippet = `[![TRUST Proof](${location.origin}/badge/${data.handle})](${url})`;
   document.getElementById('badge')?.addEventListener('click', async (e) => {
     track('badge_copied');
