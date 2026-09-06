@@ -237,8 +237,12 @@ async function addedFor(handle, cfg) {
   try {
     const r = await fetch(`${cfg.supabaseUrl}/rest/v1/rpc/proof_page`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: cfg.supabaseAnonKey,
-                 Authorization: `Bearer ${cfg.supabaseAnonKey}` },
+      // A new-format key (sb_publishable_…) is rejected in an Authorization
+      // Bearer header; a legacy eyJ… JWT expects it. Send what each accepts.
+      headers: { 'Content-Type': 'application/json',
+                 apikey: cfg.supabaseAnonKey,
+                 ...(cfg.supabaseAnonKey.startsWith('eyJ')
+                     ? { Authorization: `Bearer ${cfg.supabaseAnonKey}` } : {}) },
       body: JSON.stringify({ p_handle: handle }),
     });
     return r.ok ? await r.json() : null;

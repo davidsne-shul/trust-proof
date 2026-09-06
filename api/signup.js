@@ -9,6 +9,16 @@
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
+/**
+ * Supabase changed key formats. The new sb_publishable_… and sb_secret_… keys
+ * go in `apikey` and are REJECTED in an Authorization Bearer header, while the
+ * legacy eyJ… JWTs were conventionally sent in both. Sending both unconditionally
+ * — which is what this did — works with a legacy key and fails with a new one.
+ */
+export const supabaseAuth = (key) => key.startsWith('eyJ')
+  ? { apikey: key, Authorization: `Bearer ${key}` }
+  : { apikey: key };
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
 
@@ -29,8 +39,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        apikey: key,
-        Authorization: `Bearer ${key}`,
+        ...supabaseAuth(key),
         Prefer: 'return=minimal',   // never merge-duplicates on a plain insert
       },
       body: JSON.stringify({ email, source }),
