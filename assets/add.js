@@ -41,16 +41,60 @@ async function boot() {
   state.user ? afterSignIn() : signIn();
 }
 
+/**
+ * A link in the mail, not an OAuth provider.
+ *
+ * Google sign-in would mean a Google Cloud project, a consent screen and a
+ * pair of secrets pasted into Supabase before anyone can sign in at all —
+ * forty minutes of setup and a well-known place to get stuck. Email is on by
+ * default, needs nothing configured, and for a product whose whole subject is
+ * evidence tied to a person, an address is the right identity anyway.
+ */
 function signIn() {
   show(`
     <div class="hero" style="padding-top:60px">
       <h1 style="font-size:clamp(1.9rem,4.6vw,3rem)">Your page.</h1>
-      <p class="lede">Sign in to claim a handle and add to your record.
-        Everything you add carries the day it arrived — and that date never moves.</p>
-      <button class="btn" id="go" style="margin-top:30px">Continue with Google</button>
+      <p class="lede">Everything you add carries the day it arrived — and that
+        date never moves. Put in an email and a link comes back that opens it.</p>
+      <form class="field" id="f" novalidate style="margin-top:30px">
+        <label for="em">Email</label>
+        <div class="wrap"><input id="em" type="email" inputmode="email"
+          autocomplete="email" placeholder="you@example.com"></div>
+        <button class="btn" type="submit">Send me a link</button>
+      </form>
+      <p class="note" id="msg"></p>
     </div>`);
-  document.getElementById('go').onclick = () =>
-    state.sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + '/add' } });
+
+  document.getElementById('f').onsubmit = async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('msg');
+    const email = document.getElementById('em').value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      msg.textContent = 'That address does not look complete.'; return;
+    }
+    const btn = e.target.querySelector('button');
+    btn.disabled = true;
+    msg.textContent = 'Sending…';
+
+    const { error } = await state.sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: location.origin + '/add' },
+    });
+
+    if (error) {
+      // Supabase rate-limits its own sender, and that is the likely reason.
+      msg.textContent = 'That did not send. Try again in a few minutes.';
+      btn.disabled = false;
+      return;
+    }
+    show(`
+      <div class="hero" style="padding-top:60px">
+        <h1 style="font-size:clamp(1.6rem,4vw,2.4rem)">Check your email.</h1>
+        <p class="lede">A link is on its way to <span class="mono">${esc(email)}</span>.
+          Opening it brings you back here, signed in.</p>
+        <p class="note">Nothing arrived after a few minutes? Look in spam, then try again.</p>
+      </div>`);
+  };
 }
 
 async function afterSignIn() {
