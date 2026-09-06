@@ -13,12 +13,6 @@ const root = document.getElementById('root');
 const show = (html) => { root.innerHTML = html; };
 const state = { sb: null, user: null, profile: null, items: [] };
 
-const KINDS = [
-  ['made',    'I made'],
-  ['did',     'I did'],
-  ['learned', 'I understood'],
-];
-
 async function boot() {
   const cfg = await (await fetch('/api/config')).json();
   if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
@@ -138,7 +132,9 @@ function claimHandle() {
       msg.textContent = error.code === '23505' ? 'That handle is taken. Try another.' : 'That did not go through. Try again.';
       return;
     }
-    afterSignIn();
+    // Straight to the page. Seeing what you already have comes before being
+    // asked to add to it — the other order asks for a favour first.
+    location.href = `/@${handle}`;
   };
 }
 
@@ -160,14 +156,13 @@ async function dashboard() {
     <div style="padding:34px 0 6px">
       <h1 style="font-size:clamp(1.6rem,4vw,2.2rem)">@${esc(state.profile.handle)}</h1>
       <p class="faint mono" style="margin-top:8px">${esc(url)}</p>
+      <a class="btn" href="/@${esc(state.profile.handle)}" style="margin-top:18px">See my page</a>
     </div>
 
     <section style="border-top:1px solid var(--line);padding:32px 0">
       <div class="eyebrow">Add something</div>
       <form id="add">
-        <div class="kinds">${KINDS.map(([k, label], i) =>
-          `<label class="kind"><input type="radio" name="kind" value="${k}"${i ? '' : ' checked'}><span>${label}</span></label>`).join('')}</div>
-        <div class="field" style="margin-top:14px">
+        <div class="field" style="margin-top:4px">
           <div class="wrap" style="flex:1 1 100%"><input id="note" maxlength="240" required
             placeholder="One line — what it was"></div>
         </div>
@@ -214,10 +209,12 @@ async function addItem(e) {
     if (!error) image_path = path;
   }
 
-  const kind = root.querySelector('input[name=kind]:checked').value;
-  const { error } = await state.sb.from('proof_evidence').insert({ user_id: state.user.id, kind, note, link_url: link, image_path });
+  const { error } = await state.sb.from('proof_evidence').insert({ user_id: state.user.id, note, link_url: link, image_path });
   if (error) { msg.textContent = 'That did not go through. Try again.'; return; }
-  dashboard();
+  await dashboard();
+  // Something happened, and it happened somewhere. Say where.
+  const m = document.getElementById('msg');
+  if (m) m.innerHTML = `Added, dated today. <a href="/@${esc(state.profile.handle)}">See it on your page</a>.`;
 }
 
 async function removeItem(id) {

@@ -66,6 +66,7 @@ export const T = {
   signupDone: 'Noted. You will hear once.',
   signupBad: 'That address does not look complete.',
   signupFail: 'That did not go through. Try again in a moment.',
+  addToRecord: 'Add to this record',
   buildOwn: 'Build your own page',
   copyLink: 'Copy link',
   copyBadge: 'Copy README badge',

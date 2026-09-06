@@ -170,7 +170,8 @@ function render(d) {
     <p>${esc(T.footer(new Date(d.generated_at).toISOString().slice(0, 10)))}</p>
     ${d.depth === 'repos_only' ? `<p style="margin-top:10px">${esc(T.deeper)}</p>` : ''}
     <div class="cta">
-      <a class="btn" href="/">${esc(T.buildOwn)}</a>
+      ${d.claimed ? `<a class="btn" href="/add">${esc(T.addToRecord)}</a>` : ''}
+      <a class="btn ghost" href="/">${esc(T.buildOwn)}</a>
       <button class="btn ghost" id="copy" type="button">${esc(T.copyLink)}</button>
       <button class="btn ghost" id="badge" type="button">${esc(T.copyBadge)}</button>
     </div>
@@ -297,6 +298,7 @@ async function main() {
   }
 
   if (profile) {
+    data.claimed = true;
     data.added = profile.added;
     data.storage_base = `${cfg.supabaseUrl}/storage/v1/object/public/proof-evidence/`;
     if (profile.display_name) data.name = profile.display_name;
