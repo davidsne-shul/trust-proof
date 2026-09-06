@@ -8,8 +8,11 @@
 // Empty values are a valid answer: the site works GitHub-only until a Supabase
 // project exists, and the added layer simply does not render.
 export default function handler(req, res) {
-  res.setHeader('Cache-Control', 'public, s-maxage=300');
+  // Short, and never the year-long asset cache: this endpoint has to be able to
+  // report on a stale page, which it cannot do if it is stale itself.
+  res.setHeader('Cache-Control', 'no-store');
   res.status(200).json({
+    build: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || 'dev',
     supabaseUrl: process.env.PROOF_SUPABASE_URL || '',
     supabaseAnonKey: process.env.PROOF_SUPABASE_ANON_KEY || '',
     // Whether /api/signup can actually store anything. A boolean, never the

@@ -268,4 +268,8 @@ section{padding:clamp(48px,7vw,84px) 0; border-top:1px solid var(--line)}
 
 /* Which build is on screen. Three times now a change was invisible because a
    browser held an old file, and guessing which one costs more than saying it. */
-.build{margin-top:14px; font-size:.75rem; color:var(--faint); font-variant-numeric:tabular-nums}
+.build{
+  display:inline-block; margin-top:16px; padding:6px 12px;
+  border:1px solid var(--line); border-radius:100px;
+  font-size:.8125rem; color:var(--dim); font-variant-numeric:tabular-nums;
+}

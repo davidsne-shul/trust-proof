@@ -6,7 +6,7 @@ import { playRecord } from './film.js';
 import { openingLine } from './story.js';
 
 // Replaced at publish time. See scripts/export-proof-public.sh
-const BUILD = '260906.1953';
+const BUILD = '260906.1956';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
