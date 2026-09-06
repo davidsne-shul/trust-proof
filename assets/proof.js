@@ -6,7 +6,9 @@ import { playRecord } from './film.js';
 import { openingLine } from './story.js';
 
 // Replaced at publish time. See scripts/export-proof-public.sh
-const BUILD = '260906.2013';
+const BUILD = '260906.2036';
+/** Unreplaced token means this file was never run through the publish script. */
+const buildLabel = () => (BUILD.startsWith('__') ? 'dev' : 'v' + BUILD);
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -176,7 +178,7 @@ function render(d) {
       ${d.claimed ? `<a class="lnk" href="/add">${esc(T.addToRecord)}</a>` : ''}
     </p>
     <pre class="snippet" id="snip" hidden></pre>
-
+    <p class="build">${buildLabel()}</p>
   </div>`;
 }
 
