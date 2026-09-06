@@ -153,7 +153,9 @@ section{padding:clamp(48px,7vw,84px) 0; border-top:1px solid var(--line)}
 .ev img{display:block; width:100%; aspect-ratio:4/3; object-fit:cover; background:#181818}
 .ev figcaption{padding:14px 15px; font-size:.9375rem}
 .ev figcaption a{color:var(--accent)}
-.ev .when{display:block; margin-top:8px; font-size:.75rem; color:var(--faint); font-variant-numeric:tabular-nums}
+.ev .when{display:block; margin-top:8px; font-size:.75rem; color:var(--faint);
+  /* The date is evidence. It keeps its own order whatever language sits above it. */
+  font-variant-numeric:tabular-nums; unicode-bidi:isolate}
 
 /* ---------- the add page ---------- */
 .lnk{

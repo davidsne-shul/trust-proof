@@ -58,7 +58,8 @@ export const T = {
 
   addedTitle: 'What was added by hand',
   addedBody: (items, spread, from, to) =>
-    `${s(items, 'item', 'items')} across ${s(spread, 'day', 'days')}, from ${from} to ${to}. ` +
+    `${s(items, 'item', 'items')} across ${s(spread, 'day', 'days')}` +
+    (from === to ? `, on ${from}. ` : `, from ${from} to ${to}. `) +
     'Each one carries the day it arrived, and that date cannot be moved.',
 
   // The long version said the same thing four ways and cost the footer two

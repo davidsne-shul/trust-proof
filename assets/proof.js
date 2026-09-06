@@ -6,7 +6,7 @@ import { playRecord } from './film.js';
 import { openingLine } from './story.js';
 
 // Replaced at publish time. See scripts/export-proof-public.sh
-const BUILD = '260906.2036';
+const BUILD = '260906.2042';
 /** Unreplaced token means this file was never run through the publish script. */
 const buildLabel = () => (BUILD.startsWith('__') ? 'dev' : 'v' + BUILD);
 
@@ -87,7 +87,9 @@ function addedLayer(added, storageBase) {
     const note = a.link_url
       ? `<a href="${esc(a.link_url)}" rel="noopener nofollow ugc" target="_blank">${esc(a.note)}</a>`
       : esc(a.note);
-    return `<figure class="ev">${img}<figcaption dir="auto">${note}
+    // dir="auto" belongs on the note alone. On the caption it let a Hebrew note
+    // flip the date beside it, so "6 Sep 2026" rendered as "Sep 2026 6".
+    return `<figure class="ev">${img}<figcaption><span dir="auto">${note}</span>
       <span class="when">${esc(prettyDay(dayOf(a)))}</span></figcaption></figure>`;
   }).join('');
 
