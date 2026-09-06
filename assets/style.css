@@ -273,3 +273,15 @@ section{padding:clamp(48px,7vw,84px) 0; border-top:1px solid var(--line)}
   border:1px solid var(--line); border-radius:100px;
   font-size:.8125rem; color:var(--dim); font-variant-numeric:tabular-nums;
 }
+
+/* The product, on the page that describes it. Nobody typed a handle to find
+   out what typing a handle gets them — so show it, then offer a real one. */
+.peek{margin:40px 0 0; max-width:100%}
+.peek img{
+  display:block; width:100%; height:auto;
+  border:1px solid var(--line); border-radius:var(--r);
+}
+.peek figcaption{margin-top:14px; color:var(--faint); font-size:.875rem; max-width:60ch}
+.peek figcaption a{color:var(--dim); text-decoration:underline; text-underline-offset:3px}
+.peek figcaption a:hover{color:var(--accent)}
+[dir=rtl] .peek figcaption{margin-inline-start:0}
