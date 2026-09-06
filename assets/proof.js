@@ -5,6 +5,9 @@ import { T, MONTHS, setFormatter } from './strings.js';
 import { playRecord } from './film.js';
 import { openingLine } from './story.js';
 
+// Replaced at publish time. See scripts/export-proof-public.sh
+const BUILD = '260906.1953';
+
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const n = (x) => Number(x || 0).toLocaleString('en-US');
@@ -95,43 +98,26 @@ function addedLayer(added, storageBase) {
     </section>`;
 }
 
-function signal(num, unit, title, how) {
-  return `<div class="sig">
-    <div class="n"><b>${esc(num)}</b> ${esc(unit)}</div>
-    <div class="t">${title}</div>
-    <div class="h">${esc(how)}</div>
-  </div>`;
+/**
+ * The counts, in one line.
+ *
+ * They were four bordered boxes in a 2x2 grid — the most generic pattern on the
+ * web, and one that gave a person's returns the same weight as their language
+ * list. The numbers still matter; competing for attention is what did not.
+ */
+function counts(d) {
+  const parts = [];
+  if (d.active_weeks) parts.push(T.activeWeeks2(d.active_weeks, d.longest_run_weeks));
+  if (d.comebacks) parts.push(T.returns(d.comebacks));
+  if (d.languages?.length) parts.push(T.langs(d.languages.length));
+  if (d.long_projects?.length) parts.push(T.projs(d.long_projects.length));
+  if (!parts.length) return '';
+  return `<p class="counts">${parts.map(esc).join(' · ')}</p>
+    ${d.comebacks ? `<p class="counts-how">${esc(T.howComebacks)}</p>` : ''}`;
 }
 
 function render(d) {
   const years = Math.floor(d.days_of_record / 365);
-  const sigs = [];
-
-  if (d.comebacks) {
-    sigs.push(signal(n(d.comebacks), T.comebacks(d.comebacks),
-      d.last_comeback
-        ? esc(T.comebackLast(d.last_comeback.away_days, prettyDay(d.last_comeback.returned_on)))
-        : esc(T.comebackNone),
-      T.howComebacks));
-
-  }
-
-  if (d.active_weeks) {
-    sigs.push(signal(n(d.active_weeks), T.activeWeeks(d.active_weeks),
-      esc(T.longestRun(d.longest_run_weeks)), T.howWeeks));
-  }
-
-  if (d.languages.length) {
-    sigs.push(signal(n(d.languages.length), T.languages(d.languages.length),
-      esc(T.languageSpan(pretty(d.languages[0].first), pretty(d.languages.at(-1).first))),
-      T.howLanguages));
-  }
-
-  if (d.long_projects.length) {
-    const top = d.long_projects[0];
-    sigs.push(signal(n(d.long_projects.length), T.longProjects(d.long_projects.length),
-      T.longest(esc(top.name), top.span_days), T.howProjects));
-  }
 
   const langRows = d.languages.slice(0, 10).map((l) => `
     <div><b>${esc(l.name)}</b>
@@ -163,7 +149,7 @@ function render(d) {
 
   ${journey(d.months, d.comeback_dates)}
 
-  <div class="signals">${sigs.join('')}</div>
+  ${counts(d)}
 
   ${addedLayer(d.added, d.storage_base)}
 
@@ -179,6 +165,7 @@ function render(d) {
   <div class="foot">
     <p>${esc(T.footer(new Date(d.generated_at).toISOString().slice(0, 10)))}</p>
     ${d.depth === 'repos_only' ? `<p style="margin-top:10px">${esc(T.deeper)}</p>` : ''}
+    <p class="build">build ${esc(BUILD)}</p>
     <div class="cta">
       ${d.claimed ? `<a class="btn" href="/add">${esc(T.addToRecord)}</a>` : ''}
       <a class="btn ghost" href="/">${esc(T.buildOwn)}</a>

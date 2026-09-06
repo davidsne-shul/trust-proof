@@ -256,3 +256,16 @@ section{padding:clamp(48px,7vw,84px) 0; border-top:1px solid var(--line)}
   font-size:clamp(1.25rem,2.8vw,1.75rem); line-height:1.4; letter-spacing:-.02em;
   color:var(--text); font-weight:300;
 }
+
+/* The counts, in a line rather than in four boxes. They are context for the
+   record above them, not four competing headlines. */
+.counts{
+  margin:22px 0 0; color:var(--dim); font-size:1rem; line-height:1.6;
+}
+.counts-how{
+  margin:8px 0 0; color:var(--faint); font-size:.8125rem; max-width:58ch;
+}
+
+/* Which build is on screen. Three times now a change was invisible because a
+   browser held an old file, and guessing which one costs more than saying it. */
+.build{margin-top:14px; font-size:.75rem; color:var(--faint); font-variant-numeric:tabular-nums}

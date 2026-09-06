@@ -28,6 +28,11 @@ export const T = {
   contributions: (m, c) => `${m}: ${s(c, 'contribution', 'contributions')}`,
 
   comebacks: (c) => c === 1 ? 'comeback' : 'comebacks',
+  // The counts line that replaced the four boxes
+  activeWeeks2: (w, run) => `${s(w, 'week', 'weeks')} held work, ${fmt(run)} of them unbroken`,
+  returns: (c) => s(c, 'return after a pause', 'returns after a pause'),
+  langs: (c) => s(c, 'language', 'languages'),
+  projs: (c) => s(c, 'long project', 'long projects'),
   comebackLast: (days, date) => `Away ${s(days, 'day', 'days')} — then back on ${date}.`,
   comebackNone: 'Every stretch away ended with a return.',
   activeWeeks: (c) => c === 1 ? 'active week' : 'active weeks',
