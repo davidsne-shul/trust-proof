@@ -6,7 +6,7 @@ import { playRecord } from './film.js';
 import { openingLine } from './story.js';
 
 // Replaced at publish time. See scripts/export-proof-public.sh
-const BUILD = '260906.2001';
+const BUILD = '260906.2013';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -163,64 +163,21 @@ function render(d) {
 
 
   <div class="foot">
-    <p>${esc(T.footer(new Date(d.generated_at).toISOString().slice(0, 10)))}</p>
-    ${d.depth === 'repos_only' ? `<p style="margin-top:10px">${esc(T.deeper)}</p>` : ''}
-    <p class="build">build ${esc(BUILD)}</p>
+    <p>${esc(T.footerShort(new Date(d.generated_at).toISOString().slice(0, 10)))}</p>
+    ${d.depth === 'repos_only' ? `<p style="margin-top:8px">${esc(T.deeper)}</p>` : ''}
+
     <div class="cta">
-      ${d.claimed ? `<a class="btn" href="/add">${esc(T.addToRecord)}</a>` : ''}
-      <a class="btn ghost" href="/">${esc(T.buildOwn)}</a>
-      <button class="btn ghost" id="copy" type="button">${esc(T.copyLink)}</button>
-      <button class="btn ghost" id="badge" type="button">${esc(T.copyBadge)}</button>
+      <a class="btn" href="/">${esc(T.buildOwn)}</a>
     </div>
+
+    <p class="quiet-acts">
+      <button class="lnk" id="copy" type="button">${esc(T.copyLink)}</button>
+      <button class="lnk" id="badge" type="button">${esc(T.copyBadge)}</button>
+      ${d.claimed ? `<a class="lnk" href="/add">${esc(T.addToRecord)}</a>` : ''}
+    </p>
     <pre class="snippet" id="snip" hidden></pre>
 
-    <form class="signup" id="signup" novalidate hidden>
-      <p class="signup-lead">${esc(T.signupLead)}</p>
-      <div class="field" style="margin:0">
-        <label for="em">Email</label>
-        <div class="wrap"><input id="em" type="email" inputmode="email"
-          autocomplete="email" placeholder="${esc(T.signupPlace)}"></div>
-        <button class="btn" type="submit">${esc(T.signupGo)}</button>
-      </div>
-      <p class="note" id="emsg"></p>
-    </form>
   </div>`;
-}
-
-/**
- * The waiting list, shown only where it can actually keep what it is given.
- * It sits at the end, after someone has seen their own record — asking before
- * that is asking for a favour before anything has been offered.
- */
-function wireSignup(cfg) {
-  const form = document.getElementById('signup');
-  if (!form || !cfg.signupOpen) return;
-  form.hidden = false;
-
-  const msg = document.getElementById('emsg');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const input = document.getElementById('em');
-    const email = input.value.trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.textContent = T.signupBad; return; }
-
-    const btn = form.querySelector('button');
-    btn.disabled = true;
-    msg.textContent = '…';
-    try {
-      const r = await fetch('/api/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'proof-page' }),
-      });
-      if (!r.ok) throw new Error();
-      track('email_left');
-      form.innerHTML = `<p class="signup-lead">${esc(T.signupDone)}</p>`;
-    } catch {
-      msg.textContent = T.signupFail;
-      btn.disabled = false;
-    }
-  });
 }
 
 /** Config lives on the server so no key is written into this repository. */
@@ -326,8 +283,6 @@ async function main() {
     catch { e.target.textContent = T.playFailed; }   // never fail silently
     finally { e.target.disabled = false; }
   });
-
-  wireSignup(cfg);
 
   const snippet = `[![TRUST Proof](${location.origin}/badge/${data.handle})](${url})`;
   document.getElementById('badge')?.addEventListener('click', async (e) => {

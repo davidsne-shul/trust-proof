@@ -63,6 +63,7 @@ export async function playRecord(d, opts = {}) {
 
   const months = d.months || [];
   const scenes = [];
+  let replay = false;
 
   // 1 — who, and how far back it goes
   scenes.push(async () => {
@@ -168,26 +169,37 @@ export async function playRecord(d, opts = {}) {
     await wait(1000);
   });
 
-  // 5 — what it adds up to. Counts, side by side, nothing summed.
+  // 5 — one line, and then it waits. A film that closes itself takes the
+  //     moment away at the exact instant there is something to do with it.
   scenes.push(async () => {
-    const cells = [
-      [n(d.days_of_record), 'days of record'],
-      d.comebacks != null ? [n(d.comebacks), d.comebacks === 1 ? 'comeback' : 'comebacks'] : null,
-      d.active_weeks != null ? [n(d.active_weeks), 'active weeks'] : null,
-      d.languages?.length ? [n(d.languages.length), d.languages.length === 1 ? 'language' : 'languages'] : null,
-    ].filter(Boolean);
     scene(`<div class="fs">
-      <div class="film-grid">${cells.map(([v, k]) =>
-        `<div><b>${esc(v)}</b><span>${esc(k)}</span></div>`).join('')}</div>
-      <p class="film-sub mono" style="margin-top:26px">@${esc(d.handle)}</p>
-      <p class="film-note">Built from a public record. Nothing here was written for the film.</p>
+      <div class="film-close">
+        <p class="film-kicker">${esc(d.name)}</p>
+        <h2 class="film-last">${esc(n(d.days_of_record))} days,<br>in the order they happened.</h2>
+        <div class="film-acts">
+          <button class="btn" id="again" type="button">Play again</button>
+          <button class="btn ghost" id="share" type="button">Copy link</button>
+        </div>
+      </div>
     </div>`);
-    await wait(3400);
+
+    const url = `${location.origin}/@${d.handle}`;
+    el.querySelector('#share').onclick = async (e) => {
+      try { await navigator.clipboard.writeText(url); e.target.textContent = 'Copied'; }
+      catch { e.target.textContent = url; }
+    };
+    // Waits here. The person decides when it is over.
+    await new Promise((done) => { el.querySelector('#again').onclick = done; });
+    replay = true;
   });
 
-  for (let i = 0; i < scenes.length && !stopped; i++) {
-    fill.style.width = Math.round(((i + 1) / scenes.length) * 100) + '%';
-    await scenes[i]();
+  replay = true;
+  while (replay && !stopped) {
+    replay = false;
+    for (let i = 0; i < scenes.length && !stopped; i++) {
+      fill.style.width = Math.round(((i + 1) / scenes.length) * 100) + '%';
+      await scenes[i]();
+    }
   }
   if (!stopped) close();
 }

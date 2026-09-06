@@ -113,6 +113,21 @@
     <pre class="snippet">[![TRUST Proof](https://trust-proof-nu.vercel.app/badge/your-handle)](https://trust-proof-nu.vercel.app/@your-handle)</pre>
   </section>
 
+
+  <section id="wait">
+    <div class="eyebrow">Not yet</div>
+    <h2 style="font-size:clamp(1.4rem,3vw,1.9rem);max-width:26ch">A record can hold more than code.</h2>
+    <p class="lede" style="margin-top:14px">A photo, a link, one line — each stamped with the day it
+      arrived, and that date never moves. Leave an address and you will hear once, when it opens.</p>
+    <form class="field" id="sub" novalidate style="margin-top:24px">
+      <label for="em">Email</label>
+      <div class="wrap"><input id="em" type="email" inputmode="email" autocomplete="email"
+        placeholder="you@example.com"></div>
+      <button class="btn" type="submit">Tell me when</button>
+    </form>
+    <p class="note" id="emsg"></p>
+  </section>
+
   <section>
     <div class="eyebrow">Price</div>
     <div class="grid two">
@@ -132,6 +147,35 @@ document.getElementById('go').addEventListener('submit', (e) => {
   const v = document.getElementById('u').value.trim().replace(/^@/, '').replace(/^.*github\.com\//, '').split('/')[0];
   if (v) location.href = '/@' + encodeURIComponent(v);
 });
+const BAD = 'That address does not look complete.', DONE = 'Noted. You will hear once.', FAIL = 'That did not go through. Try again in a moment.', SOURCE = 'landing-en';
+
+// The waiting list. Hidden unless the server says it can store what it is given —
+// a form that swallows what people type is worse than no form.
+(async () => {
+  const box = document.getElementById('wait');
+  const form = document.getElementById('sub');
+  const msg = document.getElementById('emsg');
+  let open = false;
+  try { open = (await (await fetch('/api/config')).json()).signupOpen; } catch {}
+  if (!open) { box.hidden = true; return; }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('em').value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.textContent = BAD; return; }
+    const btn = form.querySelector('button');
+    btn.disabled = true; msg.textContent = '…';
+    try {
+      const r = await fetch('/api/signup', { method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: SOURCE }) });
+      if (!r.ok) throw new Error();
+      window.va?.('event', { name: 'email_left' });
+      form.outerHTML = `<p class="lede" style="margin-top:24px">${DONE}</p>`;
+      msg.textContent = '';
+    } catch { msg.textContent = FAIL; btn.disabled = false; }
+  });
+})();
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>

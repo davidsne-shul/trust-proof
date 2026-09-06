@@ -61,8 +61,9 @@ export const T = {
     `${s(items, 'item', 'items')} across ${s(spread, 'day', 'days')}, from ${from} to ${to}. ` +
     'Each one carries the day it arrived, and that date cannot be moved.',
 
-  footer: (d) => `Built from public GitHub data on ${d}. Nothing private was read. ` +
-    'No code, no commit messages, no AI — dates, counts and names only.',
+  // The long version said the same thing four ways and cost the footer two
+  // lines. The promise that matters is what was never read.
+  footerShort: (d) => `Public GitHub data, read on ${d}. No code, no commit messages, no AI.`,
   deeper: 'Day-level history opens up once the server key is set.',
   // The promise has to be one we can keep. This one is true: the second layer
   // is written and waiting on a database, not on a decision.
