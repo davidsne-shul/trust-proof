@@ -23,6 +23,7 @@ export const T = {
   years: (c) => s(c, 'year', 'years'),
   journey: 'The record, month by month',
   play: 'Play the record',
+  playFailed: 'The film did not open — try reloading',
   range: (a, b) => `Monthly activity from ${a} to ${b}`,
   contributions: (m, c) => `${m}: ${s(c, 'contribution', 'contributions')}`,
 

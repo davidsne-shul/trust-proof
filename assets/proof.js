@@ -2,6 +2,7 @@
 // Counts, never percentages. The journey draws before any number is named.
 
 import { T, MONTHS, setFormatter } from './strings.js';
+import { playRecord } from './film.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -325,7 +326,8 @@ async function main() {
   document.getElementById('play')?.addEventListener('click', async (e) => {
     track('film_played');
     e.target.disabled = true;
-    try { const { playRecord } = await import('./film.js'); await playRecord(data); }
+    try { await playRecord(data); }
+    catch { e.target.textContent = T.playFailed; }   // never fail silently
     finally { e.target.disabled = false; }
   });
 
