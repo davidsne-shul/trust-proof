@@ -3,6 +3,7 @@
 
 import { T, MONTHS, setFormatter } from './strings.js';
 import { playRecord } from './film.js';
+import { openingLine } from './story.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -39,14 +40,16 @@ function handleFromLocation() {
 }
 
 /** The hero. One bar per month across the whole record — story first, numbers after. */
-function journey(months) {
+function journey(months, comebacks = []) {
   if (!months || months.length < 2) return '';
+  const landed = new Set(comebacks.map((c) => c.on.slice(0, 7)));
   const peak = Math.max(...months.map((m) => m.count), 1);
   const first = pretty(months[0].month + '-01');
   const last = pretty(months.at(-1).month + '-01');
   const bars = months.map((m) => {
     const h = m.count ? Math.max(4, Math.round((m.count / peak) * 100)) : 3;
-    return `<i class="${m.count ? '' : 'void'}" style="height:${h}%" title="${esc(T.contributions(pretty(m.month + '-01'), m.count))}"></i>`;
+    const hit = landed.has(m.month) ? ' hit' : '';
+    return `<i class="${m.count ? '' : 'void'}${hit}" style="height:${h}%" title="${esc(T.contributions(pretty(m.month + '-01'), m.count))}"></i>`;
   }).join('');
   return `
     <div class="journey">
@@ -104,13 +107,16 @@ function render(d) {
   const years = Math.floor(d.days_of_record / 365);
   const sigs = [];
 
-  if (d.comebacks != null) {
+  if (d.comebacks) {
     sigs.push(signal(n(d.comebacks), T.comebacks(d.comebacks),
       d.last_comeback
         ? esc(T.comebackLast(d.last_comeback.away_days, prettyDay(d.last_comeback.returned_on)))
         : esc(T.comebackNone),
       T.howComebacks));
 
+  }
+
+  if (d.active_weeks) {
     sigs.push(signal(n(d.active_weeks), T.activeWeeks(d.active_weeks),
       esc(T.longestRun(d.longest_run_weeks)), T.howWeeks));
   }
@@ -153,9 +159,13 @@ function render(d) {
     ${d.months?.length > 1 ? `<button class="btn ghost play" id="play" type="button">▶ ${esc(T.play)}</button>` : ''}
   </div>
 
-  ${journey(d.months)}
+  ${(() => { const line = openingLine(d); return line ? `<p class="opening">${esc(line)}</p>` : ''; })()}
+
+  ${journey(d.months, d.comeback_dates)}
 
   <div class="signals">${sigs.join('')}</div>
+
+  ${addedLayer(d.added, d.storage_base)}
 
   ${d.languages.length ? `<section style="border:0;padding:44px 0 0">
     <div class="eyebrow">${esc(T.langTimeline)}</div>
@@ -165,7 +175,6 @@ function render(d) {
     <div class="eyebrow">${esc(T.projectTimeline)}</div>
     <div class="tl">${projRows}</div></section>` : ''}
 
-  ${addedLayer(d.added, d.storage_base)}
 
   <div class="foot">
     <p>${esc(T.footer(new Date(d.generated_at).toISOString().slice(0, 10)))}</p>

@@ -2,7 +2,9 @@
 
 :root{
   --ink:#0A0A0A; --paper:#FAFAF8; --line:#232323;
-  --text:#F2F1EE; --dim:#9AA0A8; --faint:#6E747C;
+  /* --faint carries more of this page than --text does, so it has to pass AA:
+     #6E747C measured 4.20:1 and failed. These are 6.4:1 and 9.6:1. */
+  --text:#F2F1EE; --dim:#adb4bd; --faint:#8b93a0;
   --accent:#7DD8A8; --warm:#E8C07D; --violet:#A78BFA;
   --r:16px; --r-sm:12px;
   --shell:min(1040px,92vw);
@@ -103,12 +105,19 @@ section{padding:clamp(48px,7vw,84px) 0; border-top:1px solid var(--line)}
 
 /* the journey — the first thing anyone sees. story before number. */
 .journey{padding:34px 0 10px}
-.bars{display:flex; align-items:flex-end; gap:2px; height:132px; margin-top:18px}
+.bars{
+  display:flex; align-items:flex-end; gap:2px;
+  height:clamp(220px,34vh,380px); margin-top:18px;
+}
+@media(max-width:620px){ .bars{gap:1px} }   /* 2px gaps ate a third of the chart */
 .bars i{
   flex:1; min-width:2px; background:linear-gradient(180deg,var(--accent),rgba(125,216,168,.22));
   border-radius:2px 2px 0 0; display:block; transition:opacity .15s;
 }
 .bars i.void{background:#1B1B1B}
+/* A month a return landed in. The film has marked these since it was written;
+   the page, which far more people see, never did. */
+.bars i.hit{background:var(--warm); box-shadow:0 0 14px rgba(232,192,125,.45)}
 .axis{display:flex; justify-content:space-between; margin-top:9px; font-size:.75rem; color:var(--faint)}
 
 .signals{display:grid; gap:14px; margin-top:36px}
@@ -239,3 +248,11 @@ section{padding:clamp(48px,7vw,84px) 0; border-top:1px solid var(--line)}
   max-width:560px;
 }
 .signup-lead{color:var(--dim); font-size:.9375rem; margin-bottom:16px; max-width:56ch}
+
+/* The one sentence the page opens with. Set as a sentence, not a caption —
+   it is the thing that makes the number above it mean something. */
+.opening{
+  margin:26px 0 0; max-width:34ch;
+  font-size:clamp(1.25rem,2.8vw,1.75rem); line-height:1.4; letter-spacing:-.02em;
+  color:var(--text); font-weight:300;
+}
