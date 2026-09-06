@@ -72,7 +72,11 @@ export default async function handler(req, res) {
     const n = (x) => Number(x).toLocaleString('en-US');
     const one = (c, s, p) => `${c} ${c === 1 ? s : p}`;
 
-    const cells = [{ n: n(d.days_of_record), label: 'days of record' }];
+    // Same headline as the page. A badge that claimed a different number
+    // than the record it links to would discredit both.
+    const cells = typeof d.active_days === 'number'
+      ? [{ n: n(d.active_days), label: 'days carried work' }]
+      : [{ n: n(d.days_of_record), label: 'days of record' }];
     if (d.comebacks != null) {
       cells.push({ n: n(d.comebacks), label: d.comebacks === 1 ? 'comeback' : 'comebacks' });
       cells.push({ n: n(d.active_weeks), label: 'active weeks' });

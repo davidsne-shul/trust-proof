@@ -76,9 +76,11 @@ export async function playRecord(d, opts = {}) {
 
     scene(`<div class="fs">
       <div class="film-big"><span id="cnt">0</span></div>
-      <p class="film-sub">days of record${d.since ? ` · since ${esc(mon(d.since.slice(0, 7)))}` : ''}</p>
+      <p class="film-sub">${typeof d.active_days === 'number' ? 'days carried work' : 'days of record'}${d.since ? ` · since ${esc(mon(d.since.slice(0, 7)))}` : ''}</p>
     </div>`);
-    const target = d.days_of_record;
+    // The film counts up to the same number the page leads with. Two different
+    // headline figures for one person would undo both.
+    const target = typeof d.active_days === 'number' ? d.active_days : d.days_of_record;
     const cnt = el.querySelector('#cnt');
     if (still()) { cnt.textContent = n(target); await wait(1400); }
     else {
@@ -175,7 +177,9 @@ export async function playRecord(d, opts = {}) {
     scene(`<div class="fs">
       <div class="film-close">
         <p class="film-kicker">${esc(d.name)}</p>
-        <h2 class="film-last">${esc(n(d.days_of_record))} days,<br>in the order they happened.</h2>
+        <h2 class="film-last">${typeof d.active_days === 'number'
+          ? `${esc(n(d.active_days))} days that carried work,<br>in the order they happened.`
+          : `${esc(n(d.days_of_record))} days,<br>in the order they happened.`}</h2>
         <div class="film-acts">
           <button class="btn" id="again" type="button">Play again</button>
           <button class="btn ghost" id="share" type="button">Copy link</button>

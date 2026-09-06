@@ -113,12 +113,26 @@ export function weekRhythm(days) {
 }
 
 export function monthly(days) {
+  // The record starts when work starts. Months between opening an account and
+  // doing the first thing are not a quiet period — nothing was being recorded
+  // yet, and drawing them as empty says something that did not happen.
+  // Gaps *inside* the record stay: a pause is the evidence a comeback rests on.
+  const first = days.findIndex((d) => d.count > 0);
+  if (first === -1) return [];
   const m = new Map();
-  for (const d of days) {
+  for (const d of days.slice(first)) {
     const k = d.date.slice(0, 7);
     m.set(k, (m.get(k) || 0) + d.count);
   }
   return [...m.entries()].sort().map(([month, count]) => ({ month, count }));
+}
+
+/** The stretch the work itself covers: first day with something to the last. */
+export function workSpan(days) {
+  const active = days.filter((d) => d.count > 0);
+  if (!active.length) return null;
+  const from = active[0].date, to = active[active.length - 1].date;
+  return { from, to, days: Math.round((new Date(to) - new Date(from)) / DAY) + 1 };
 }
 
 /** When each language first entered this person's work — breadth that accumulated gradually. */
@@ -167,20 +181,30 @@ export async function computeProof(handle, token) {
   const since = user.created_at.slice(0, 10);
   const days = await contributionDays(handle, since, token);
 
+  // Without a token there is no day-by-day record, so the span falls back to
+  // what the repositories themselves show: the first one created to the most
+  // recent push. Still work — never the day the account was opened.
+  const own = repos.filter((r) => !r.fork);
+  const repoFrom = own.map((r) => r.created_at).sort()[0] || null;
+  const repoTo = own.map((r) => r.pushed_at).sort().pop() || null;
+
   const payload = {
     handle: user.login,
     name: user.name || user.login,
     avatar: user.avatar_url,
     bio: user.bio || null,
-    since,
-    days_of_record: Math.round((Date.now() - new Date(user.created_at)) / DAY),
+    since: (repoFrom || user.created_at).slice(0, 10),
+    days_of_record: repoFrom && repoTo
+      ? Math.round((new Date(repoTo) - new Date(repoFrom)) / DAY) + 1
+      : 0,
     languages: languageTimeline(repos),
     long_projects: longProjects(repos),
     repos_built: repos.filter((r) => !r.fork).length,
     generated_at: new Date().toISOString(),
     depth: days ? 'full' : 'repos_only',
     how: {
-      days_of_record: 'From the day the account opened until today.',
+      active_days: 'Days carrying at least one contribution. Opening an account adds none of these.',
+      days_of_record: 'From the first day that carried work to the most recent one.',
       comebacks: 'A stretch of 14 or more days with nothing, followed by a day with something.',
       active_weeks: 'Weeks holding at least one day of activity.',
       languages: 'The earliest repository created in each language.',
@@ -200,6 +224,17 @@ export async function computeProof(handle, token) {
       longest_away_days: back.reduce((a, b) => Math.max(a, b.away_days), 0),
       last_comeback: back.length ? back[back.length - 1] : null,
       active_days: days.filter((d) => d.count > 0).length,
+    });
+
+    // Account age is not evidence of anything — waiting produces it. Once the
+    // day-by-day record exists, the span is measured from the first day that
+    // carried work to the last, and `since` follows it.
+    const span = workSpan(days);
+    if (span) Object.assign(payload, {
+      since: span.from,
+      worked_from: span.from,
+      worked_to: span.to,
+      days_of_record: span.days,
     });
   }
 

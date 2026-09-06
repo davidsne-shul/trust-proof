@@ -1,6 +1,6 @@
 // Known-answer checks for the signal math. Run: node proof/test/signals.test.mjs
 import assert from 'node:assert/strict';
-import { comebacks, weekRhythm, monthly, languageTimeline, longProjects } from '../api/proof.js';
+import { comebacks, weekRhythm, monthly, workSpan, languageTimeline, longProjects } from '../api/proof.js';
 
 const DAY = 86400000;
 const day = (iso, count) => ({ date: iso, count });
@@ -80,6 +80,46 @@ t('a boundary of exactly 90 days is kept', () => {
   const p = longProjects([{ name: 'edge', language: 'C', fork: false, created_at: '2026-01-01T00:00:00Z', pushed_at: '2026-04-01T00:00:00Z', stargazers_count: 0 }]);
   assert.equal(p.length, 1);
   assert.equal(p[0].span_days, 90);
+});
+
+console.log('the record starts when the work starts');
+t('months before the first day of work are not drawn', () => {
+  // An account opened in January, first touched in April. The three silent
+  // months are not a pause — nothing was being recorded yet.
+  const d = [];
+  for (let i = 0; i < 120; i++) d.push(day(plus('2026-01-01', i), 0));
+  d.push(day('2026-05-01', 4));
+  const m = monthly(d);
+  assert.equal(m[0].month, '2026-05');
+});
+t('a gap inside the record is kept — it is what a comeback rests on', () => {
+  const d = [day('2026-01-05', 2)];
+  for (let i = 1; i <= 70; i++) d.push(day(plus('2026-01-05', i), 0));
+  d.push(day('2026-03-20', 1));
+  const m = monthly(d);
+  assert.deepEqual(m.map((x) => x.month), ['2026-01', '2026-02', '2026-03']);
+  assert.equal(m[1].count, 0);
+});
+t('a record with nothing in it draws nothing', () => {
+  assert.deepEqual(monthly([day('2026-01-01', 0), day('2026-01-02', 0)]), []);
+});
+
+console.log('the span measures work, never account age');
+t('counts first day with work to the last, inclusive', () => {
+  const d = [day('2025-02-19', 1), day('2025-06-01', 0), day('2026-09-06', 3)];
+  const sp = workSpan(d);
+  assert.equal(sp.from, '2025-02-19');
+  assert.equal(sp.to, '2026-09-06');
+  assert.equal(sp.days, 565);
+});
+t('an account open for years with nothing in it has no span at all', () => {
+  const d = [];
+  for (let i = 0; i < 1000; i++) d.push(day(plus('2023-01-01', i), 0));
+  assert.equal(workSpan(d), null);
+});
+t('one single day of work is a span of one day, not of the account', () => {
+  const sp = workSpan([day('2020-01-01', 0), day('2026-09-06', 2)]);
+  assert.equal(sp.days, 1);
 });
 
 console.log(`\n${pass} checks passed.`);

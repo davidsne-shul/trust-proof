@@ -6,7 +6,7 @@ import { playRecord } from './film.js';
 import { openingLine } from './story.js';
 
 // Replaced at publish time. See scripts/export-proof-public.sh
-const BUILD = '260906.2042';
+const BUILD = '260906.2101';
 /** Unreplaced token means this file was never run through the publish script. */
 const buildLabel = () => (BUILD.startsWith('__') ? 'dev' : 'v' + BUILD);
 
@@ -48,7 +48,10 @@ function handleFromLocation() {
 function journey(months, comebacks = []) {
   if (!months || months.length < 2) return '';
   const landed = new Set(comebacks.map((c) => c.on.slice(0, 7)));
-  const peak = Math.max(...months.map((m) => m.count), 1);
+  // Heights are relative to the fullest month, but a floor stops a thin record
+  // from drawing itself as a full one: with a peak of a single contribution,
+  // that month used to reach 100% and read like a career high.
+  const peak = Math.max(...months.map((m) => m.count), 8);
   const first = pretty(months[0].month + '-01');
   const last = pretty(months.at(-1).month + '-01');
   const bars = months.map((m) => {
@@ -120,8 +123,26 @@ function counts(d) {
     ${d.comebacks ? `<p class="counts-how">${esc(T.howComebacks)}</p>` : ''}`;
 }
 
+/**
+ * The number in the largest type has to be the one that cannot be had by
+ * waiting. Account age was the old headline: open an account, do nothing for
+ * three years, and the page announced "1,095 days of record" — the exact claim
+ * this product exists to make unfakeable. Days that carried work rise only when
+ * someone came back. The span drops to the line beneath, as context.
+ *
+ * Without a token there is no day-by-day record, so the span leads instead and
+ * the reader is told the reading is shallower.
+ */
+function headline(d) {
+  if (typeof d.active_days !== 'number') {
+    return `<div class="big"><span>${esc(n(d.days_of_record))}</span> ${esc(T.daysOfRecord)}</div>
+      <div class="faint">${esc(T.since(pretty(d.since)))}</div>`;
+  }
+  return `<div class="big"><span>${esc(n(d.active_days))}</span> ${esc(T.daysCarried(d.active_days))}</div>
+    <div class="faint">${esc(T.spread(d.days_of_record, pretty(d.worked_from), pretty(d.worked_to)))}</div>`;
+}
+
 function render(d) {
-  const years = Math.floor(d.days_of_record / 365);
 
   const langRows = d.languages.slice(0, 10).map((l) => `
     <div><b>${esc(l.name)}</b>
@@ -144,8 +165,7 @@ function render(d) {
   ${d.bio ? `<p class="dim" dir="auto" style="max-width:60ch">${esc(d.bio)}</p>` : ''}
 
   <div class="span-line">
-    <div class="big"><span>${esc(n(d.days_of_record))}</span> ${esc(T.daysOfRecord)}</div>
-    <div class="faint">${esc(T.since(pretty(d.since)))}${years >= 1 ? ` · ${esc(T.years(years))}` : ''}</div>
+    ${headline(d)}
     ${d.months?.length > 1 ? `<button class="btn ghost play" id="play" type="button">▶ ${esc(T.play)}</button>` : ''}
   </div>
 

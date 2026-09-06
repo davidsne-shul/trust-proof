@@ -19,6 +19,10 @@ const s = (c, one, many) => `${fmt(c)} ${c === 1 ? one : many}`;
 export const T = {
   loading: 'Reading the record…',
   daysOfRecord: 'days of record',
+  // The headline. It is the one number here that cannot be had by waiting.
+  daysCarried: (c) => c === 1 ? 'day carried work' : 'days carried work',
+  spread: (span, from, to) =>
+    `across ${s(span, 'day', 'days')}` + (from === to ? '' : ` · ${from} – ${to}`),
   since: (d) => `since ${d}`,
   years: (c) => s(c, 'year', 'years'),
   journey: 'The record, month by month',
