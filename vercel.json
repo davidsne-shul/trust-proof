@@ -3,6 +3,10 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/demo",
+      "destination": "/p"
+    },
+    {
       "source": "/badge/:handle",
       "destination": "/api/badge?u=:handle"
     },

@@ -18,6 +18,12 @@ const s = (c, one, many) => `${fmt(c)} ${c === 1 ? one : many}`;
 
 export const T = {
   loading: 'Reading the record…',
+  // Said plainly and kept on screen. A page that reads as someone's record
+  // while being invented would be the one thing this product cannot survive.
+  exampleTitle: 'An example, not a person.',
+  exampleBody: 'Nobody has this record. It is generated, and it is here to show '
+    + 'what the page becomes once a real one has years in it.',
+  exampleAct: 'Build yours from your GitHub',
   daysOfRecord: 'days of record',
   // The headline. It is the one number here that cannot be had by waiting.
   daysCarried: (c) => c === 1 ? 'day carried work' : 'days carried work',

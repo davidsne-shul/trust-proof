@@ -6,7 +6,7 @@ import { playRecord } from './film.js';
 import { openingLine } from './story.js';
 
 // Replaced at publish time. See scripts/export-proof-public.sh
-const BUILD = '260906.2101';
+const BUILD = '260907.0444';
 /** Unreplaced token means this file was never run through the publish script. */
 const buildLabel = () => (BUILD.startsWith('__') ? 'dev' : 'v' + BUILD);
 
@@ -143,6 +143,9 @@ function headline(d) {
 }
 
 function render(d) {
+  const banner = d.is_example ? `<div class="example-bar">
+    <b>${esc(T.exampleTitle)}</b><span>${esc(T.exampleBody)}</span>
+    <a class="btn" href="/">${esc(T.exampleAct)}</a></div>` : '';
 
   const langRows = d.languages.slice(0, 10).map((l) => `
     <div><b>${esc(l.name)}</b>
@@ -155,6 +158,7 @@ function render(d) {
       <span class="when">${esc(T.days(p.span_days))}</span></div>`).join('');
 
   return `
+  ${banner}
   <div class="who">
     <img src="${esc(d.avatar)}" alt="" width="76" height="76" loading="lazy">
     <div>
@@ -243,6 +247,24 @@ function addedOnly(profile, handle) {
 
 async function main() {
   const root = document.getElementById('root');
+
+  // The worked example. Served whole rather than assembled from a handle,
+  // because there is no account behind it and there must not appear to be one.
+  if (location.pathname.replace(/\/$/, '') === '/demo') {
+    document.title = 'An example record — TRUST Proof';
+    root.innerHTML = `<div class="state"><div class="skl"></div></div>`;
+    try {
+      const d = await (await fetch('/api/demo')).json();
+      root.innerHTML = render(d);
+      wire(d);
+      track('example_seen');
+    } catch {
+      root.innerHTML = `<div class="state"><p>${esc(T.errOther)}</p>
+        <a class="btn ghost" href="/" style="margin-top:20px">${esc(T.tryAnother)}</a></div>`;
+    }
+    return;
+  }
+
   const handle = handleFromLocation();
   if (!handle) { location.replace('/'); return; }
 
@@ -288,8 +310,15 @@ async function main() {
   track('page_built', { depth: data.depth, added: data.added?.length ? 'yes' : 'no' });
   track(...returnVisit(data.handle));
 
-  const url = `${location.origin}/@${data.handle}`;
   history.replaceState(null, '', `/@${data.handle}`);
+  wire(data);
+}
+
+/** Buttons on a rendered record. Shared so the worked example behaves like one. */
+function wire(data) {
+  const url = data.is_example
+    ? `${location.origin}/demo`
+    : `${location.origin}/@${data.handle}`;
   document.getElementById('copy')?.addEventListener('click', async (e) => {
     track('link_copied');
     try { await navigator.clipboard.writeText(url); e.target.textContent = T.copied; }
@@ -309,6 +338,7 @@ async function main() {
   });
 
   const snippet = `[![TRUST Proof](${location.origin}/badge/${data.handle})](${url})`;
+  if (data.is_example) document.getElementById('badge')?.remove();
   document.getElementById('badge')?.addEventListener('click', async (e) => {
     track('badge_copied');
     const pre = document.getElementById('snip');
